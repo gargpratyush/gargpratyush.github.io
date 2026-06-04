@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pratyush Garg — writings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #f5f4f0;
+      --bg-card:    #eeecea;
+      --bg-code:    #e4e2de;
+      --fg:         #1a1916;
+      --fg-muted:   #6b6760;
+      --fg-faint:   #a8a5a0;
+      --accent:     #1a1916;
+      --border:     #d4d1cc;
+      --border-faint: #e2dfda;
+      --link:       #1a1916;
+      --tag-bg:     #dedad5;
+      --tag-fg:     #4a4844;
+      --transition: 180ms ease;
+    }
+    [data-theme="dark"] {
+      --bg:         #111110;
+      --bg-card:    #1a1918;
+      --bg-code:    #232220;
+      --fg:         #e8e5e0;
+      --fg-muted:   #7a776f;
+      --fg-faint:   #4a4844;
+      --accent:     #e8e5e0;
+      --border:     #2e2c29;
+      --border-faint: #222120;
+      --link:       #e8e5e0;
+      --tag-bg:     #2a2927;
+      --tag-fg:     #9a9790;
+    }
+
+    html { font-size: 15px; }
+
+    body {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.7;
+      transition: background var(--transition), color var(--transition);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── layout ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-faint);
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .site-logo {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--fg-muted);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+    .site-logo:hover { color: var(--fg); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    /* ── theme toggle switch ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label {
+      font-size: 0.7rem;
+      color: var(--fg-faint);
+      letter-spacing: 0.04em;
+      transition: color var(--transition);
+      white-space: nowrap;
+    }
+    .toggle-track {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      background: var(--border);
+      border-radius: 9px;
+      transition: background 200ms ease;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .toggle-track {
+      background: var(--fg-muted);
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      background: var(--bg);
+      border-radius: 50%;
+      transition: transform 200ms ease, background 200ms ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    }
+    [data-theme="dark"] .toggle-thumb {
+      transform: translateX(16px);
+    }
+    .toggle-wrap:hover .toggle-label { color: var(--fg-muted); }
+    .toggle-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 2rem 3rem;
+    }
+
+    /* ── post layout: wider container + sidebar ── */
+    body.post-open main {
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      grid-template-rows: auto 1fr;
+      column-gap: 3.5rem;
+      align-items: start;
+    }
+    body.post-open #post-view {
+      grid-column: 2;
+      grid-row: 1 / -1;
+    }
+
+    /* ── table of contents ── */
+    #toc-sidebar {
+      grid-column: 1;
+      grid-row: 1 / -1;
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto;
+      padding-bottom: 2rem;
+      display: none;
+    }
+    body.post-open #toc-sidebar { display: block; }
+
+    /* hide sidebar on narrow screens */
+    @media (max-width: 1000px) {
+      body.post-open main {
+        display: block;
+        max-width: 720px;
+      }
+      #toc-sidebar { display: none !important; }
+    }
+
+    .toc-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 0.8rem;
+      font-weight: 400;
+    }
+
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .toc-item {
+      margin: 0;
+    }
+
+    .toc-link {
+      display: block;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: var(--fg-faint);
+      text-decoration: none;
+      padding: 3px 0 3px 10px;
+      border-left: 1px solid var(--border-faint);
+      transition: color var(--transition), border-color var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toc-link:hover {
+      color: var(--fg-muted);
+      border-left-color: var(--fg-faint);
+    }
+    .toc-link.active {
+      color: var(--fg);
+      border-left-color: var(--fg-muted);
+    }
+    .toc-link.toc-h3 {
+      padding-left: 20px;
+      font-size: 0.67rem;
+    }
+    .toc-link.toc-h1 {
+      font-weight: 500;
+      font-size: 0.72rem;
+    }
+
+    /* ── home view ── */
+    #home-view { display: block; }
+    #post-view  { display: none; }
+
+    .home-intro {
+      margin-bottom: 4rem;
+    }
+
+    .home-intro h1 {
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      margin-bottom: 0.5rem;
+      color: var(--fg);
+    }
+
+    .home-intro p {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      max-width: 460px;
+      line-height: 1.8;
+    }
+
+    .posts-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 1.2rem;
+      font-weight: 400;
+    }
+
+    .post-list {
+      list-style: none;
+      border-top: 1px solid var(--border-faint);
+    }
+
+    .post-item {
+      border-bottom: 1px solid var(--border-faint);
+      transition: background var(--transition);
+    }
+
+    .post-item-link {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 1.1rem 0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .post-item-link:hover .post-item-title { color: var(--fg-muted); }
+
+    .post-item-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .post-item-title {
+      font-size: 0.88rem;
+      font-weight: 400;
+      color: var(--fg);
+      line-height: 1.5;
+      transition: color var(--transition);
+    }
+
+    .post-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .post-date {
+      font-size: 0.72rem;
+      color: var(--fg-faint);
+    }
+
+    .post-tag {
+      font-size: 0.65rem;
+      background: var(--tag-bg);
+      color: var(--tag-fg);
+      padding: 2px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .post-arrow {
+      font-size: 0.8rem;
+      color: var(--fg-faint);
+      flex-shrink: 0;
+      transition: transform var(--transition), color var(--transition);
+    }
+    .post-item-link:hover .post-arrow {
+      transform: translateX(3px);
+      color: var(--fg-muted);
+    }
+
+    /* ── blog post view ── */
+    .post-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--fg-faint);
+      text-decoration: none;
+      cursor: pointer;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.02em;
+      transition: color var(--transition);
+    }
+    .post-back:hover { color: var(--fg-muted); }
+
+    .post-header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    .post-header h1 {
+      font-size: 1.15rem;
+      font-weight: 500;
+      line-height: 1.55;
+      margin-bottom: 0.7rem;
+      color: var(--fg);
+    }
+
+    .post-header-meta {
+      font-size: 0.72rem;
+      color: var(--fg-faint);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* ── prose ── */
+    .prose { font-size: 0.875rem; line-height: 1.85; color: var(--fg); }
+
+    .prose h1,
+    .prose h2,
+    .prose h3 {
+      font-weight: 500;
+      color: var(--fg);
+      margin: 2.2rem 0 0.75rem;
+      line-height: 1.4;
+    }
+    .prose h1 { font-size: 1.05rem; }
+    .prose h2 { font-size: 0.95rem; }
+    .prose h3 { font-size: 0.875rem; }
+
+    .prose p { margin: 0 0 1.1rem; }
+
+    .prose a { color: var(--fg); text-underline-offset: 3px; }
+    .prose a:hover { color: var(--fg-muted); }
+
+    .prose strong { font-weight: 500; }
+    .prose em { font-style: italic; }
+
+    .prose ul, .prose ol {
+      margin: 0 0 1.1rem 1.4rem;
+    }
+    .prose li { margin: 0.2rem 0; }
+
+    .prose hr {
+      border: none;
+      border-top: 1px solid var(--border-faint);
+      margin: 2rem 0;
+    }
+
+    /* inline code */
+    .prose code {
+      font-family: inherit;
+      font-size: 0.82em;
+      background: var(--bg-code);
+      color: var(--fg);
+      padding: 1px 5px;
+      border-radius: 2px;
+      transition: background var(--transition);
+    }
+
+    /* code blocks */
+    .prose pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.1rem 1.2rem;
+      overflow-x: hidden;
+      margin: 0 0 1.4rem;
+      transition: background var(--transition), border-color var(--transition);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .prose pre code {
+      background: none;
+      padding: 0;
+      font-size: 0.8rem;
+      line-height: 1.75;
+      color: var(--fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ascii diagrams — keep exact spacing, allow scroll only for these */
+    .prose pre.ascii {
+      font-size: 0.72rem;
+      white-space: pre;
+      overflow-x: auto;
+      word-break: normal;
+    }
+    .prose pre.ascii code {
+      white-space: pre;
+      word-break: normal;
+    }
+
+    /* tables */
+    .prose table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0 0 1.4rem;
+      font-size: 0.82rem;
+    }
+    .prose th, .prose td {
+      text-align: left;
+      padding: 0.45rem 0.8rem;
+      border: 1px solid var(--border);
+    }
+    .prose th {
+      background: var(--bg-code);
+      font-weight: 500;
+      color: var(--fg);
+    }
+    .prose td { color: var(--fg-muted); }
+
+    /* blockquote */
+    .prose blockquote {
+      border-left: 2px solid var(--border);
+      padding-left: 1rem;
+      color: var(--fg-muted);
+      margin: 0 0 1.1rem;
+    }
+
+    /* ── footer ── */
+    .site-footer {
+      border-top: 1px solid var(--border-faint);
+      margin-top: auto;
+      padding: 2rem;
+      transition: border-color var(--transition);
+    }
+
+    .footer-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+    }
+
+    .footer-sig {
+      font-size: 0.72rem;
+      color: var(--fg-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .footer-link {
+      font-size: 0.72rem;
+      color: var(--fg-muted);
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+      transition: color var(--transition), background var(--transition);
+    }
+    .footer-link:hover {
+      color: var(--fg);
+      background: var(--bg-card);
+    }
+    .footer-sep {
+      color: var(--fg-faint);
+      font-size: 0.7rem;
+      user-select: none;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 520px) {
+      main { padding: 2.5rem 1.2rem 2rem; }
+      .site-header { padding: 0 1.2rem; }
+      .site-footer { padding: 1.5rem 1.2rem; }
+      .post-item-link { flex-direction: column; gap: 0.4rem; }
+      .post-arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <span class="site-logo" onclick="showHome()">Pratyush Garg</span>
+    <div class="header-right">
+      <button class="toggle-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark mode">
+        <label class="toggle-wrap" style="cursor:pointer;">
+          <span class="toggle-label" id="toggle-label-text">dark</span>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── HOME VIEW ── -->
+    <section id="home-view">
+      <div class="home-intro">
+        <h1>writings</h1>
+        <p>
+          notes on systems, production problems, and the gap between how things
+          should work and how they actually do.
+        </p>
+      </div>
+
+      <p class="posts-label">posts</p>
+      <ul class="post-list" id="post-list"></ul>
+    </section>
+
+    <!-- ── POST VIEW ── -->
+    <aside id="toc-sidebar">
+      <p class="toc-label">on this page</p>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+
+    <section id="post-view">
+      <a class="post-back" onclick="showHome()">&#8592; back</a>
+      <div class="post-header">
+        <h1 id="post-title"></h1>
+        <div class="post-header-meta">
+          <span id="post-date-display"></span>
+          <span id="post-tags-display"></span>
+        </div>
+      </div>
+      <article class="prose" id="post-body"></article>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-sig">Pratyush Garg</span>
+      <nav class="footer-links" aria-label="Contact and profiles">
+        <a class="footer-link" href="mailto:gargpratyush999@gmail.com">email</a>
+        <span class="footer-sep">/</span>
+        <a class="footer-link" href="https://github.com/gargpratyush" target="_blank" rel="noopener">github</a>
+        <span class="footer-sep">/</span>
+        <a class="footer-link" href="https://www.linkedin.com/in/pratyushgarg2002/" target="_blank" rel="noopener">linkedin</a>
+        <span class="footer-sep">/</span>
+        <a class="footer-link" href="https://drive.google.com/file/d/1jGF9ZznL5iBV-yd1tz9zTxXq29-RcVSy/view?usp=sharing" target="_blank" rel="noopener">resume</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+  // ── data ──────────────────────────────────────────────────────────────────
+
+  const POSTS = [
+    {
+      id: "rolling-window-worker-pool",
+      title: "Squeezing Maximum Throughput Out of Batch Processes: The Rolling-Window Worker Pool",
+      date: "2026-06-01",
+      tags: ["typescript", "concurrency", "systems"],
+      content: `
+A few months ago we were staring at a familiar problem: a service that needed to process around a hundred items per request, each one a call to a slow external API, with a user waiting on the other end. The first cut was a \`for\` loop. The second was \`Promise.all\`. The third was the one we shipped — chunked batches with a concurrency limit — and we patted ourselves on the back and moved on.
+
+Then we actually measured it. Our workers were sitting idle roughly 40% of the time. The fix turned out to be small, surprisingly elegant, and the kind of thing you wish someone had shown you years ago.
+
+This post is that thing. We'll work through why the obvious "chunked batch" approach silently throws away half your throughput, what to do instead, and (in an advanced section at the end) all the other layers you'll probably need once you start pushing this thing in production.
+
+Examples are in TypeScript, but the pattern is language-agnostic — it works just as well with Go goroutines, Python asyncio, Kotlin coroutines, or Java virtual threads.
+
+---
+
+## A motivating example
+
+Pick whichever of these sounds like you:
+
+- A bulk image transcoder calling a cloud vision API for each image.
+- A document pipeline asking an LLM to summarize each document.
+- A migration script enriching every user record from a third-party API.
+- A search reindex pulling each document from a slow upstream.
+
+The shape is always the same. You've got N items. For each one, you call something slow over the network. Latency is variable — most calls return in a few seconds, but a few hang around for a minute. The upstream API has rate limits. Your own service has memory limits. And somebody is waiting.
+
+What's the fastest way to chew through those items?
+
+---
+
+## The approaches that don't work
+
+The sequential version is too slow to even talk about: 100 items × an 8-second average is over thirteen minutes, by which point your user has rage-quit and is writing a Reddit post about you.
+
+Firing everything at once with \`Promise.all\` is tempting because in theory the wall-clock cost is just the slowest single call. In practice you immediately blow through the upstream's rate limit, your service holds a hundred sets of in-flight buffers in memory, and the first failure rejects the whole batch and throws away the 99 successful ones. So that's out too.
+
+What most people land on — and what we landed on — is some flavor of chunked batches:
+
+\`\`\`ts
+const CONCURRENCY = 5;
+for (let i = 0; i < items.length; i += CONCURRENCY) {
+  const chunk = items.slice(i, i + CONCURRENCY);
+  await Promise.all(chunk.map(callSlowAPI));
+}
+\`\`\`
+
+This caps memory. It caps concurrency. It avoids 429s. It looks correct. And it is leaving an enormous amount of throughput on the floor — quietly, and in a way that doesn't show up unless you actually profile it.
+
+---
+
+## Why chunked batches are slower than they look
+
+The villain here is variable latency. Real APIs don't return in constant time. A typical latency distribution looks something like p50 of 5 seconds, p90 of 15, p99 of 60. The mean looks fine; the tail is murder.
+
+A chunk is a \`Promise.all\`, which means the chunk doesn't finish until the slowest call in it finishes. So when one unlucky call in a chunk of 5 takes 45 seconds, the other four workers don't pick up new work — they just sit there. Waiting. For 39 seconds.
+
+\`\`\`
+time →   0s    5s   10s   15s   20s   25s   30s   35s   40s   45s
+
+Worker 1 [A 4s]············ idle ·······················
+Worker 2 [B 6s  ]·········· idle ······················
+Worker 3 [C 5s ]············ idle ······················
+Worker 4 [D 3s]············· idle ······················
+Worker 5 [E ─────────────────── 45s ─────────────────────]
+                                                          ↑
+                                            chunk finally finishes
+\`\`\`
+
+Multiply that across 20 chunks of a 100-item job and the picture isn't great:
+
+\`\`\`
+Chunk 1: [▓▓▓▓▓ idle idle idle idle idle]
+Chunk 2: [▓▓▓ idle idle idle]
+Chunk 3: [▓▓▓▓▓▓▓▓▓▓ ← unlucky chunk, all tasks slow]
+Chunk 4: [▓▓ idle idle idle idle]
+...
+\`\`\`
+
+The dark bars are work. The blank space is paid-for capacity going nowhere. Every chunk imposes a barrier — nothing in chunk 2 can start until everything in chunk 1 finishes. Barriers plus tail latency equals wasted slots, and the longer the tail, the more you waste.
+
+---
+
+## The rolling-window worker pool
+
+The fix is to take the barriers out.
+
+Instead of "do a chunk, wait for the chunk, do the next chunk," you run a fixed number of workers, each one in its own little loop: grab the next available task, do it, grab another, do it, repeat until there's nothing left. No chunks. No barriers. Just a sliding window of W workers that advances by one slot the instant any one task finishes.
+
+Here's what that looks like with five workers:
+
+\`\`\`
+time →   0s    5s   10s   15s   20s   25s   30s   35s   40s   45s
+
+Worker 1 [A 4s][F 6s   ][K 5s  ][P 7s    ][U 3s]...
+Worker 2 [B 6s   ][G 4s ][L 8s     ][Q 5s  ]...
+Worker 3 [C 5s  ][H 3s][M 6s   ][R 4s ][V 5s  ]...
+Worker 4 [D 3s][I 5s  ][N 4s ][S 6s   ][W 5s  ]...
+Worker 5 [E ──────────── 45s ────────────][J 5s  ]...
+                                          ↑
+                              W5 was slow but didn't block anyone
+\`\`\`
+
+Worker 5 still gets stuck on the slow task. But while it's grinding away, the other four chew through a dozen more items between them. The slow task costs you one worker's productivity for 45 seconds — not five workers' productivity for 45 seconds. That's the whole trick.
+
+How much you actually save depends entirely on your latency distribution. For something like the p50/p90/p99 numbers above, our internal workload typically lands in the 30–45% wall-clock reduction range — but that's our distribution, not a law. If your latency is uniform and low, the win is small; if it's heavy-tailed, the win is enormous.
+
+---
+
+## Watching it run, minute by minute
+
+If the diagrams above feel hand-wavy, here's a fully worked example. Twelve tasks, three workers, latencies handed out by an adversary:
+
+| Task | Latency |
+| --- | --- |
+| t0 | 5s |
+| t1 | 30s ← the slow one |
+| t2 | 4s |
+| t3 | 3s |
+| t4 | 6s |
+| t5 | 4s |
+| t6 | 5s |
+| t7 | 3s |
+| t8 | 4s |
+| t9 | 5s |
+| t10 | 4s |
+| t11 | 5s |
+
+The chunked version (chunks of three) gets unlucky on the first chunk, where t1 holds everyone up for 30 seconds:
+
+\`\`\`
+Chunk 1 (t0,t1,t2):  W1[t0 5s] W2[t1 ──── 30s ────] W3[t2 4s]
+                                                     ↑
+                          chunk doesn't finish until t=30s
+Chunk 2 (t3,t4,t5):   starts at 30s, ends at 36s
+Chunk 3 (t6,t7,t8):   starts at 36s, ends at 41s
+Chunk 4 (t9,t10,t11): starts at 41s, ends at 46s
+
+Total: 46 seconds. About 51 worker-seconds wasted in chunk 1 alone.
+\`\`\`
+
+The rolling-window version with three workers doesn't wait for anything:
+
+\`\`\`
+t=0:   W1 picks t0 (5s),  W2 picks t1 (30s), W3 picks t2 (4s)
+t=4:   W3 finishes t2, picks t3 (3s)
+t=5:   W1 finishes t0, picks t4 (6s)
+t=7:   W3 finishes t3, picks t5 (4s)
+t=11:  W1 finishes t4, picks t6 (5s)
+t=11:  W3 finishes t5, picks t7 (3s)
+t=14:  W3 finishes t7, picks t8 (4s)
+t=16:  W1 finishes t6, picks t9 (5s)
+t=18:  W3 finishes t8, picks t10 (4s)
+t=21:  W1 finishes t9, picks t11 (5s)
+t=22:  W3 finishes t10 — nothing left, stops
+t=26:  W1 finishes t11 — nothing left, stops
+t=30:  W2 finally finishes t1 — done
+
+Total: 30 seconds.
+\`\`\`
+
+Same workload, same concurrency, 35% faster. The only difference is that nobody waits at a chunk boundary.
+
+---
+
+## The implementation
+
+The whole thing is about thirty lines:
+
+\`\`\`ts
+export async function runPool<T>(
+  tasks: (() => Promise<T>)[],
+  concurrency: number
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = new Array(tasks.length);
+  let next = 0;  // index of the next task to pick up
+
+  async function worker() {
+    while (next < tasks.length) {
+      const idx = next++;            // ← atomic pickup
+      try {
+        results[idx] = { status: "fulfilled", value: await tasks[idx]() };
+      } catch (reason) {
+        results[idx] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, tasks.length) },
+    () => worker()
+  );
+  await Promise.all(workers);
+  return results;
+}
+\`\`\`
+
+A few things worth pointing out, because they tripped us up.
+
+\`next++\` is safe without a mutex *in single-threaded async runtimes only*. Node and Python asyncio both run cooperatively — code executes to completion between \`await\` points, and \`const idx = next++\` is a synchronous statement, so no other worker can interleave and grab the same index. **This does not generalize.** In Go you need \`atomic.AddInt64\`; in JVM languages with real preemption you need an \`AtomicInteger\`; in Rust with Tokio multi-thread you need an \`AtomicUsize\`. The shape of the pattern carries over fine; only the index increment needs the language-appropriate atomic.
+
+Tasks are passed in as \`() => Promise<T>\`, not \`Promise<T>\`. This matters: if you hand \`runPool\` a list of already-constructed promises, they're already executing — your concurrency limit went out the window before the function was even called. The thunk form means each task only fires when a worker decides to start it.
+
+And the results come back as \`PromiseSettledResult<T>\` rather than the function throwing. We learned this one the hard way: in a batch of a hundred, one failure should not destroy ninety-nine successes. The pool stashes each outcome in its slot and lets the caller decide what to do — count successes, retry the rejects, mark bad inputs, whatever.
+
+### Why not just use p-limit or p-queue?
+
+If you Google "JavaScript concurrency limiter" you'll land on [p-limit](https://github.com/sindresorhus/p-limit) or [p-queue](https://github.com/sindresorhus/p-queue) within thirty seconds, and they're both excellent. For a single-process, single-priority use case, just install one of them — they implement the same rolling-window idea, they're battle-tested, and they save you from owning the code.
+
+We rolled our own because by the time you've added the priority semaphore (Layer 2), per-user round-robin fairness, structured telemetry on every acquire/release, and the retry semantics from Layer 3, you've reimplemented most of the library anyway. The 30-line pool is the easy part — the layers around it are where the actual product value lives, and we wanted them tightly coupled to our own metrics and queue model. If you're not going past Layer 1, use the library.
+
+Calling it looks about how you'd expect:
+
+\`\`\`ts
+const tasks = items.map(item => () => callSlowAPI(item));
+const results = await runPool(tasks, 5);
+
+const ok = results.filter(r => r.status === "fulfilled").length;
+const fail = results.filter(r => r.status === "rejected").length;
+console.log(\`Processed \${ok} ok, \${fail} failed\`);
+\`\`\`
+
+That's the whole pattern. If you take nothing else from this post: replace your chunked-batch loops with this and measure. You'll probably be unreasonably pleased with the result.
+
+---
+
+## When *not* to use it
+
+Worth being honest about: the rolling-window pool isn't a free win in every situation. It beats chunked batches whenever there's meaningful variance in task latency. When there isn't, the two approaches converge — and a couple of times, the pool is actually worse than the alternatives.
+
+A few specific cases to think twice about:
+
+**Uniform low latency.** If every task is ~50ms and there's basically no variance, \`Promise.all\` on the whole batch is fine and the pool's bookkeeping is pure overhead. The break-even point is roughly when the slowest task in a chunk is at least 2× the median; below that, you're paying the cost of the abstraction for no real gain.
+
+**Truly independent tasks with no shared upstream.** If your "tasks" are CPU-bound work on different cores with no shared rate-limited dependency, you want a real thread/worker pool with proper parallelism, not a single-threaded async pool that just interleaves I/O waits.
+
+**When ordering matters.** The pool deliberately decouples completion order from submission order. If downstream consumers expect results in input order (and can't be retrofit with a sort), you'll need to either buffer-and-sort at the end or pick a different pattern.
+
+**Very small batches.** For N ≤ 2 × concurrency, the chunked version and the rolling-window version do roughly the same thing — there aren't enough tasks for the rolling behavior to matter. Don't agonize about it.
+
+The rough crossover heuristic we use: if your p99/p50 latency ratio is above ~3× and your batch is at least 4× your concurrency, switch to the pool. Below that, either approach is fine and you should optimize for code clarity over throughput.
+
+---
+
+## A benchmark you can run
+
+Skip the trust-us-and-measure step. Here's a self-contained Node script that simulates both approaches on a workload with configurable latency distribution. Drop it into a \`.mjs\` file, \`node bench.mjs\`, and you'll get numbers.
+
+\`\`\`js
+// bench.mjs — chunked vs rolling-window on a simulated workload
+const N = 100;          // tasks
+const CONC = 5;         // concurrency
+const P50 = 50;         // ms
+const P99 = 2000;       // ms — set === P50 for uniform; raise for heavy tail
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Log-normal-ish latency: most tasks near P50, tail toward P99.
+function sampleLatency() {
+  const u = Math.random();
+  return u < 0.99 ? P50 + Math.random() * (P50 * 0.4) : P50 + Math.random() * (P99 - P50);
+}
+
+const latencies = Array.from({ length: N }, sampleLatency);
+const makeTask = ms => () => sleep(ms);
+
+async function chunked(latencies) {
+  const tasks = latencies.map(makeTask);
+  const t0 = Date.now();
+  for (let i = 0; i < tasks.length; i += CONC) {
+    await Promise.all(tasks.slice(i, i + CONC).map(f => f()));
+  }
+  return Date.now() - t0;
+}
+
+async function rolling(latencies) {
+  const tasks = latencies.map(makeTask);
+  const t0 = Date.now();
+  let next = 0;
+  async function worker() {
+    while (next < tasks.length) {
+      const idx = next++;
+      try { await tasks[idx](); } catch {}
+    }
+  }
+  await Promise.all(Array.from({ length: CONC }, () => worker()));
+  return Date.now() - t0;
+}
+
+console.log("chunked: ", await chunked(latencies), "ms");
+console.log("rolling: ", await rolling(latencies), "ms");
+\`\`\`
+
+A few runs with \`P50=50, P99=2000\` on our laptop produce something like:
+
+\`\`\`
+chunked:  4180 ms
+rolling:  2710 ms   (~35% faster)
+\`\`\`
+
+Set \`P99 = P50\` and the gap collapses to near-zero, exactly as the "when not to use it" section predicts. Set \`P99 = 10000\` and the gap widens dramatically.
+
+---
+
+# Going further
+
+Everything above is the core idea, and on its own it'll get you a long way. But once you start running this thing in production — multiple users hitting the same endpoint, a flaky upstream, a single machine running out of headroom — you'll hit a sequence of new problems. The rest of this post is the layers we added, in roughly the order we needed them.
+
+If you're just here for the pattern, you can stop reading now. If you're here because something is on fire, keep going.
+
+---
+
+## Layer 2: a global semaphore with priority
+
+The pool above does one job well: it caps concurrency *within one batch*. The trouble starts when you have more than one batch running at the same time.
+
+### Why a per-batch cap isn't enough
+
+Picture a service that exposes \`POST /process-batch\`. Each call spins up a pool with concurrency 5. That's fine in isolation — five concurrent upstream calls is well within everyone's rate limit.
+
+Now twenty users call it within the same minute:
+
+\`\`\`
+User A → POST /process-batch  →  pool(5) ─┐
+User B → POST /process-batch  →  pool(5) ─┤
+User C → POST /process-batch  →  pool(5) ─┤
+   ...                                    ├──→ upstream API
+User T → POST /process-batch  →  pool(5) ─┘
+
+In-flight requests to upstream: 20 × 5 = 100
+\`\`\`
+
+Each pool obeys its own limit. The upstream sees 100 simultaneous requests and starts returning 429s. Your memory balloons because every in-flight request is holding image buffers, JSON payloads, whatever. Your autoscaler hasn't caught up. Things start cascading.
+
+The problem is that a per-batch limit has no idea any other batches exist. You need a second cap, one level up, that counts every in-flight call in the process regardless of where it came from.
+
+### Why FIFO isn't enough either
+
+Even with a process-wide cap of, say, 10, you still have a fairness problem. Real services usually mix two flavors of traffic. Some of it is *interactive*: a human is staring at a spinner and expects something to happen in seconds. The rest is *batch*: a background refresh, a nightly aggregation, nobody waiting.
+
+If both classes share one FIFO queue, then the first batch user to show up effectively reserves all your capacity. The next interactive request — the one with the human attached to it — lands behind ninety queued batch tasks. The spinner spins for forty-five seconds. The user closes the tab.
+
+FIFO treats every waiter the same. When some waiters are way more urgent than others, that's the wrong default.
+
+### The full semaphore implementation
+
+We want a global semaphore with three properties: a hard cap on in-flight calls, two queues (interactive and batch) with biased dispatching favoring interactive, and a *bounded* bias so a constant stream of interactive traffic doesn't starve batch entirely.
+
+\`\`\`ts
+const MAX = 10;
+const INTERACTIVE_RATIO = 3;  // serve 3 interactive per 1 batch when both have waiters
+
+let active = 0;
+let servedSinceLastBatch = 0;
+
+type Waiter = { resolve: (release: () => void) => void };
+const interactiveQueue: Waiter[] = [];
+const batchQueue: Waiter[] = [];
+
+export function acquire(priority: "interactive" | "batch"): Promise<() => void> {
+  if (active < MAX) {
+    active++;
+    return Promise.resolve(release);
+  }
+  return new Promise(resolve => {
+    (priority === "interactive" ? interactiveQueue : batchQueue).push({ resolve });
+  });
+}
+
+function release(): void {
+  active--;
+  dispatch();
+}
+
+function dispatch(): void {
+  while (active < MAX) {
+    const next = pickNext();
+    if (!next) return;
+    active++;
+    next.resolve(release);
+  }
+}
+
+function pickNext(): Waiter | undefined {
+  const hasI = interactiveQueue.length > 0;
+  const hasB = batchQueue.length > 0;
+  if (!hasI && !hasB) return undefined;
+  if (hasI && !hasB) { servedSinceLastBatch++; return interactiveQueue.shift(); }
+  if (!hasI && hasB) { servedSinceLastBatch = 0; return batchQueue.shift(); }
+  // both queues have waiters — apply the ratio
+  if (servedSinceLastBatch >= INTERACTIVE_RATIO) {
+    servedSinceLastBatch = 0;
+    return batchQueue.shift();
+  }
+  servedSinceLastBatch++;
+  return interactiveQueue.shift();
+}
+\`\`\`
+
+\`release\` calls \`dispatch\` in a \`while\` loop so that if multiple waiters can be served at once, we drain as many as the cap allows. \`servedSinceLastBatch\` implements the 3:1 ratio: every time interactive gets a slot we increment it, every time batch gets one we reset it.
+
+### Why a ratio, not strict priority
+
+If you give interactive *absolute* priority, you starve batch. Imagine a steady drip of four interactive calls per second, each holding a slot for five seconds. That's twenty slots of average demand on a ten-slot pool — interactive alone keeps the pool fully busy. With strict priority, batch never gets a single slot. Ever.
+
+A bounded ratio gives both classes guaranteed progress. A 3:1 ratio means even when interactive demand is overwhelming, one in every four slot-frees still goes to batch. Batch runs at a quarter speed — slow, but never zero.
+
+### Fairness inside the batch queue: per-user round-robin
+
+Even within the batch class you can be unfair. If user A submits a 75-task batch at 10:00:00 and user B submits a 75-task batch at 10:00:01, a plain FIFO batch queue drains all of A's tasks before B's first task gets a slot.
+
+The fix is per-user round-robin inside the batch queue:
+
+\`\`\`ts
+const batchByUser = new Map<string, Waiter[]>();
+const userRing: string[] = [];
+let ringIndex = 0;
+
+export function acquire(priority: "interactive" | "batch", uid?: string): Promise<() => void> {
+  if (active < MAX) { active++; return Promise.resolve(release); }
+  return new Promise(resolve => {
+    if (priority === "interactive") {
+      interactiveQueue.push({ resolve });
+    } else {
+      const u = uid ?? "_anon";
+      if (!batchByUser.has(u)) { batchByUser.set(u, []); userRing.push(u); }
+      batchByUser.get(u)!.push({ resolve });
+    }
+  });
+}
+
+function takeFromBatch(): Waiter | undefined {
+  if (userRing.length === 0) return undefined;
+  const uid = userRing[ringIndex % userRing.length];
+  const q = batchByUser.get(uid)!;
+  const w = q.shift()!;
+  if (q.length === 0) {
+    batchByUser.delete(uid);
+    userRing.splice(userRing.indexOf(uid), 1);
+    // don't increment: the next user slid into this index after splice
+    if (userRing.length > 0) ringIndex = ringIndex % userRing.length;
+  } else {
+    ringIndex = (ringIndex + 1) % userRing.length;
+  }
+  return w;
+}
+\`\`\`
+
+The full thing is around 150 lines once you add structured logging. It composes with the pool with zero coordination:
+
+\`\`\`ts
+const tasks = items.map(item => async () => {
+  const release = await acquire("batch", userId);
+  try {
+    return await callSlowAPI(item);
+  } finally {
+    release();
+  }
+});
+await runPool(tasks, 5);
+\`\`\`
+
+---
+
+## Layer 3: retries that don't kick you out of your slot
+
+External APIs return 429s and 5xxs. You need retries. The naive version looks fine:
+
+\`\`\`ts
+async function callWithRetry(item) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await callSlowAPI(item); }
+    catch (err) {
+      if (attempt === 2) throw err;
+      const base = Math.pow(2, attempt + 1) * 1000;       // 2s, 4s
+      const jitter = Math.random() * 1000;                 // ± up to 1s
+      await sleep(base + jitter);
+    }
+  }
+}
+\`\`\`
+
+The jitter matters more than people give it credit for — without it, every worker that hit the same upstream error at the same time will retry at the same time, and you've just engineered a perfectly synchronized stampede.
+
+But once the semaphore is in play, there's a deeper bug. If retries happen *outside* the semaphore acquire — release the slot, sleep, re-acquire — then every retry has to wait in the queue all over again. The fix is to hold the slot across retries:
+
+\`\`\`ts
+async function callWithRetry(item) {
+  const release = await acquire("batch");
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { return await callSlowAPI(item); }
+      catch (err) {
+        if (attempt === 2) throw err;
+        if (!isRetryable(err)) throw err;  // don't retry permanent errors
+        const base = Math.pow(2, attempt + 1) * 1000;
+        const jitter = Math.random() * 1000;
+        await sleep(base + jitter);
+      }
+    }
+  } finally {
+    release();
+  }
+}
+\`\`\`
+
+Only retry things that are actually retryable. 429 and 5xx, yes. 400 and 422, no — those are permanent input problems, and retrying them just wastes a slot.
+
+---
+
+## Layer 4: fan-out across machines
+
+The pattern is the standard one: a thin enqueuer puts one task per unit of work onto a managed queue (Cloud Tasks, SQS, RabbitMQ, BullMQ — take your pick), and the queue dispatches to a fleet of workers that scales horizontally:
+
+\`\`\`ts
+async function fanOut(userIds: string[]) {
+  for (const uid of userIds) {
+    await queue.enqueue({
+      url: "/process-user",
+      body: { uid },
+      headers: { Authorization: serviceAuthToken() },
+    });
+  }
+}
+
+router.post("/process-user", async (req, res) => {
+  const { uid } = req.body;
+  await processOneUser(uid);  // uses pool + semaphore internally
+  res.json({ ok: true });
+});
+\`\`\`
+
+Configure the queue with something like \`maxConcurrentDispatches=10\` and your autoscaler will spin up roughly that many instances, each running its own pool and its own semaphore. No code changes; it just scales.
+
+---
+
+## Layer 5: the streaming-response gotcha (read this one)
+
+If you only read one of these supplementary layers, make it this one. It's the production trap most likely to wake you up at 2am, the one that's hardest to diagnose from logs alone, and the one we've watched at least three other teams independently rediscover.
+
+Our first version of the per-user handler looked like this:
+
+\`\`\`ts
+router.post("/process-user", async (req, res) => {
+  const { uid } = req.body;
+  res.json({ status: "started" });           // ← respond immediately
+  processOneUser(uid).catch(console.error);  // ← work runs in background
+});
+\`\`\`
+
+The reasoning seemed solid: respond fast so the queue doesn't time us out, do the real work asynchronously. Nice and snappy.
+
+What we missed: the queue considers a task complete the moment the handler responds. The instant \`res.json\` flushes, the queue marks that dispatch slot free and immediately dispatches the next task. So \`maxConcurrentDispatches=10\` doesn't mean "ten tasks executing" — it means "ten tasks being responded to," which takes about a millisecond each. Within seconds the queue had piled thousands of tasks onto every instance. OOM, cascading failures, paging at 2am, the works.
+
+The fix is to keep the response open for the actual duration of the work, with a periodic heartbeat so proxies in the middle don't close the connection on you:
+
+\`\`\`ts
+router.post("/process-user", async (req, res) => {
+  const { uid } = req.body;
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+  res.flushHeaders();
+
+  const heartbeat = setInterval(() => {
+    try { res.write("\\n"); } catch {}
+  }, 30_000);
+
+  try {
+    const result = await processOneUser(uid);
+    res.end(JSON.stringify({ status: "done", ...result }));
+  } finally {
+    clearInterval(heartbeat);
+  }
+});
+\`\`\`
+
+Now the queue holds the dispatch slot for the full work duration, \`maxConcurrentDispatches\` means what it says, and back-pressure propagates correctly: queue → autoscaler → instance count.
+
+The general lesson: whenever a queue's concurrency control depends on a worker holding a response open, actually hold it open. Don't ack-and-go-async unless your queue specifically supports a separate "in progress" signal.
+
+---
+
+## Layer 6: idempotency and single-flight locks
+
+**Gap-fill idempotency.** Don't design it as "do these 100 tasks." Design it as "make sure 100 of these things exist":
+
+\`\`\`ts
+async function topUp(userId: string) {
+  const existing = await countExisting(userId);
+  const need = Math.max(0, 100 - existing);
+  if (need === 0) return;
+  await generateNew(userId, need);
+}
+\`\`\`
+
+Call this once and it generates 100. Call it again right after and it generates 0. Call it once 30 have been consumed and it generates 30. The whole system becomes safe to retry: scheduler failures, duplicate dispatches, network hiccups — none of them cause duplicate work.
+
+**Single-flight locks.** For cases where the same batch can be triggered from multiple places at once, use a short distributed lock with a TTL. The example below uses Firestore transactions, but any store with conditional writes (Redis \`SET NX PX\`, DynamoDB conditional update, Postgres advisory locks) works the same way:
+
+\`\`\`ts
+// Firestore-style — adapt to your store of choice.
+const acquired = await db.runTransaction(async tx => {
+  const lock = await tx.get(lockRef);
+  if (lock.exists && Date.now() - lock.data().startedAt < TTL_MS) return false;
+  tx.set(lockRef, { startedAt: Date.now() });
+  return true;
+});
+if (!acquired) return { status: "already_in_progress" };
+\`\`\`
+
+Two failure modes worth being explicit about. If the lock store is unavailable when you try to acquire, you have to pick a side: fail closed (refuse the work — safer, but the user sees an error during a transient outage) or fail open (do the work without the lock — keeps things moving, but you may double-generate during the outage). We fail closed for write-heavy operations and fail open for read-mostly ones; pick deliberately and write a comment explaining why.
+
+If the lock document is deleted externally, the next acquire will simply succeed — usually the right behavior, but if you ever rely on "this lock is definitely held by a live worker" for correctness, you need a heartbeat-based lock instead, not just a TTL one.
+
+And the TTL itself is the important part. If a worker crashes mid-batch and the lock has no expiration, that user is locked out forever. Pick a TTL that's comfortably longer than the worst-case batch duration and you're done.
+`
+    }
+  ];
+
+  // ── markdown-to-html (no deps) ────────────────────────────────────────────
+
+  function mdToHtml(md) {
+    const lines = md.split('\n');
+    const out = [];
+    let i = 0;
+
+    function escape(s) {
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function inlineCode(s) {
+      // escape HTML first, then apply inline formatting
+      s = escape(s);
+      // inline code
+      s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // bold
+      s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // italic (single * not inside **)
+      s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      // links [text](url)
+      s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      return s;
+    }
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // fenced code block
+      if (line.startsWith('```')) {
+        const lang = line.slice(3).trim();
+        const codeLines = [];
+        i++;
+        while (i < lines.length && !lines[i].startsWith('```')) {
+          codeLines.push(escape(lines[i]));
+          i++;
+        }
+        const cls = lang ? '' : ' class="ascii"';
+        out.push(`<pre${cls}><code>${codeLines.join('\n')}</code></pre>`);
+        i++;
+        continue;
+      }
+
+      // headings
+      const h3 = line.match(/^### (.+)/);
+      if (h3) { out.push(`<h3>${inlineCode(h3[1])}</h3>`); i++; continue; }
+      const h2 = line.match(/^## (.+)/);
+      if (h2) { out.push(`<h2>${inlineCode(h2[1])}</h2>`); i++; continue; }
+      const h1 = line.match(/^# (.+)/);
+      if (h1) { out.push(`<h1>${inlineCode(h1[1])}</h1>`); i++; continue; }
+
+      // hr
+      if (/^---+$/.test(line.trim())) { out.push('<hr>'); i++; continue; }
+
+      // table
+      if (line.startsWith('|')) {
+        const rows = [];
+        while (i < lines.length && lines[i].startsWith('|')) {
+          rows.push(lines[i]);
+          i++;
+        }
+        // filter separator rows
+        const dataRows = rows.filter(r => !/^\|[\s\-|]+\|$/.test(r.trim()));
+        if (dataRows.length > 0) {
+          const cells = r => r.split('|').slice(1, -1).map(c => c.trim());
+          const head = cells(dataRows[0]);
+          const body = dataRows.slice(1);
+          const thead = head.map(c => `<th>${inlineCode(c)}</th>`).join('');
+          const tbody = body.map(r => {
+            return '<tr>' + cells(r).map(c => `<td>${inlineCode(c)}</td>`).join('') + '</tr>';
+          }).join('');
+          out.push(`<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`);
+        }
+        continue;
+      }
+
+      // unordered list
+      if (/^- /.test(line)) {
+        const items = [];
+        while (i < lines.length && /^- /.test(lines[i])) {
+          items.push(`<li>${inlineCode(lines[i].slice(2))}</li>`);
+          i++;
+        }
+        out.push(`<ul>${items.join('')}</ul>`);
+        continue;
+      }
+
+      // blockquote
+      if (line.startsWith('> ')) {
+        const bqLines = [];
+        while (i < lines.length && lines[i].startsWith('> ')) {
+          bqLines.push(lines[i].slice(2));
+          i++;
+        }
+        out.push(`<blockquote><p>${bqLines.map(inlineCode).join('<br>')}</p></blockquote>`);
+        continue;
+      }
+
+      // blank line
+      if (line.trim() === '') { i++; continue; }
+
+      // paragraph
+      const paraLines = [];
+      while (i < lines.length && lines[i].trim() !== '' && !lines[i].startsWith('#')
+             && !lines[i].startsWith('```') && !lines[i].startsWith('|')
+             && !lines[i].startsWith('- ') && !lines[i].startsWith('> ')
+             && !/^---+$/.test(lines[i].trim())) {
+        paraLines.push(lines[i]);
+        i++;
+      }
+      if (paraLines.length) {
+        out.push(`<p>${paraLines.map(inlineCode).join(' ')}</p>`);
+      }
+    }
+
+    return out.join('\n');
+  }
+
+  // ── routing ───────────────────────────────────────────────────────────────
+
+  function showHome() {
+    document.getElementById('home-view').style.display = 'block';
+    document.getElementById('post-view').style.display = 'none';
+    document.body.classList.remove('post-open');
+    document.getElementById('toc-list').innerHTML = '';
+    if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    history.pushState({}, '', './');
+    document.title = 'Pratyush Garg — writings';
+  }
+
+  function showPost(id) {
+    const post = POSTS.find(p => p.id === id);
+    if (!post) return;
+
+    document.getElementById('post-title').textContent = post.title;
+    document.getElementById('post-date-display').textContent = formatDate(post.date);
+    document.getElementById('post-tags-display').textContent = post.tags.join(' · ');
+    document.getElementById('post-body').innerHTML = mdToHtml(post.content);
+
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('post-view').style.display = 'block';
+    document.body.classList.add('post-open');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    history.pushState({ postId: id }, '', '#' + id);
+    document.title = post.title + ' — Pratyush Garg';
+
+    buildToc();
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  // ── render post list ──────────────────────────────────────────────────────
+
+  function renderList() {
+    const list = document.getElementById('post-list');
+    list.innerHTML = '';
+    POSTS.forEach(post => {
+      const li = document.createElement('li');
+      li.className = 'post-item';
+      li.innerHTML = `
+        <div class="post-item-link" role="button" tabindex="0" onclick="showPost('${post.id}')">
+          <div class="post-item-left">
+            <span class="post-item-title">${post.title}</span>
+            <div class="post-item-meta">
+              <span class="post-date">${formatDate(post.date)}</span>
+              ${post.tags.map(t => `<span class="post-tag">${t}</span>`).join('')}
+            </div>
+          </div>
+          <span class="post-arrow">→</span>
+        </div>`;
+      // keyboard a11y
+      li.querySelector('[role=button]').addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') showPost(post.id);
+      });
+      list.appendChild(li);
+    });
+  }
+
+  // ── theme ─────────────────────────────────────────────────────────────────
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    document.getElementById('toggle-label-text').textContent = next === 'dark' ? 'dark' : 'light';
+    localStorage.setItem('theme', next);
+  }
+
+  function initTheme() {
+    const saved = localStorage.getItem('theme');
+    const preferred = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const theme = saved || preferred;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('toggle-label-text').textContent = theme === 'dark' ? 'dark' : 'light';
+  }
+
+  // ── table of contents ─────────────────────────────────────────────────────
+
+  let tocObserver = null;
+
+  function buildToc() {
+    const body = document.getElementById('post-body');
+    const tocList = document.getElementById('toc-list');
+    tocList.innerHTML = '';
+
+    // add IDs to all headings in the rendered post body
+    const headings = body.querySelectorAll('h1, h2, h3');
+    const slugCount = {};
+
+    headings.forEach(h => {
+      const text = h.textContent.trim();
+      let slug = text.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 60);
+      slugCount[slug] = (slugCount[slug] || 0) + 1;
+      if (slugCount[slug] > 1) slug += '-' + (slugCount[slug] - 1);
+      h.id = 'h-' + slug;
+
+      const tag = h.tagName.toLowerCase();
+      const li = document.createElement('li');
+      li.className = 'toc-item';
+      const a = document.createElement('a');
+      a.className = 'toc-link toc-' + tag;
+      a.href = '#h-' + slug;
+      a.textContent = text;
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    // scroll spy via IntersectionObserver
+    if (tocObserver) tocObserver.disconnect();
+    const links = tocList.querySelectorAll('.toc-link');
+
+    tocObserver = new IntersectionObserver(entries => {
+      // find the topmost visible heading
+      let topVisible = null;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (!topVisible || entry.boundingClientRect.top < topVisible.boundingClientRect.top) {
+            topVisible = entry;
+          }
+        }
+      });
+      if (topVisible) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = tocList.querySelector(`a[href="#${topVisible.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    }, {
+      rootMargin: '-52px 0px -60% 0px',
+      threshold: 0
+    });
+
+    headings.forEach(h => tocObserver.observe(h));
+
+    // set first item active initially
+    if (links.length) links[0].classList.add('active');
+  }
+
+  // ── browser back/forward ──────────────────────────────────────────────────
+
+  window.addEventListener('popstate', e => {
+    if (e.state && e.state.postId) {
+      showPost(e.state.postId);
+    } else {
+      showHome();
+    }
+  });
+
+  // handle direct URL with hash
+  function routeFromHash() {
+    const hash = location.hash.slice(1);
+    if (hash && POSTS.find(p => p.id === hash)) {
+      showPost(hash);
+    } else {
+      showHome();
+    }
+  }
+
+  // ── boot ──────────────────────────────────────────────────────────────────
+
+  initTheme();
+  renderList();
+  routeFromHash();
+  </script>
+</body>
+</html>
