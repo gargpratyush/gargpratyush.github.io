@@ -667,17 +667,39 @@ Worker 5 [E ─────────────────── 45s ──
                                             chunk finally finishes
 \`\`\`
 
-Multiply that across 20 chunks of a 100-item job and the picture isn't great:
+Multiply that across 20 chunks of a 100-item job — 20 × 5 = 100 tasks, every chunk barrier-gated by its slowest member:
 
 \`\`\`
-Chunk 1: [▓▓▓▓▓ idle idle idle idle idle]
-Chunk 2: [▓▓▓ idle idle idle]
-Chunk 3: [▓▓▓▓▓▓▓▓▓▓ ← unlucky chunk, all tasks slow]
-Chunk 4: [▓▓ idle idle idle idle]
-...
+█ = task running    · = worker idle, waiting for the chunk to end
+
+chunk    W1        W2        W3        W4        W5
+  1     ███····   ██·····   ███████   ████···   ██·····
+  2     ████··    ██████    ███···    █·····    ███···
+  3     ██····    ████··    ██████    ███···    █·····
+  4     ██████    ████··    ███···    ██····    █·····
+  5     ███···    ██████    ████··    ██····    █·····
+  6     ████·     █████     ██···     ████·     ███··
+  7     ███····   ██·····   ███████   ███····   ██·····
+  8     ██···     ████·     ██···     █████     ███··
+  9     ███··     ██···     █████     ████·     ██···
+ 10     ██····    ██████    ███···    ████··    █·····
+ 11     ████··    ███···    ██████    ██····    ███···
+ 12     █····     █████     ███··     ██···     ████·
+ 13     ███···    ████··    ██████    ██····    █·····
+ 14     ████·     ██···     █████     ███··     ██···
+ 15     ███···    █████·    ██····    ██████    ████··
+ 16     ██···     ████·     ███··     █····     █████
+ 17     ████···   ███····   ███████   ██·····   ██·····
+ 18     █████·    ███···    ██████    ████··    ██····
+ 19     ███··     █████     ██···     ████·     ██···
+ 20     ██····    █████·    ██····    ███···    ██████
+
+totals across all 100 tasks (580 slot-seconds provisioned)
+  work:  338 slot-seconds  ≈ 58%
+  idle:  242 slot-seconds  ≈ 42%  ← paid for, doing nothing
 \`\`\`
 
-The dark bars are work. The blank space is paid-for capacity going nowhere. Every chunk imposes a barrier — nothing in chunk 2 can start until everything in chunk 1 finishes. Barriers plus tail latency equals wasted slots, and the longer the tail, the more you waste.
+Every █ is a real task; every · is a real worker-second of waste. Every chunk imposes a barrier — nothing in chunk 2 can start until every worker in chunk 1 finishes — and the dots are what those barriers cost you. Across the whole run, ~42% of provisioned capacity goes nowhere.
 
 ---
 
