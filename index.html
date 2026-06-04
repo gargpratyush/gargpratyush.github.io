@@ -602,7 +602,7 @@
       id: "rolling-window-worker-pool",
       title: "Squeezing Maximum Throughput Out of Batch Processes: The Rolling-Window Worker Pool",
       date: "2026-06-01",
-      tags: ["typescript", "concurrency", "systems"],
+      tags: ["rate-limiting", "batch-processing", "concurrency"],
       content: `
 A few months ago we were staring at a familiar problem: a service that needed to process around a hundred items per request, each one a call to a slow external API, with a user waiting on the other end. The first cut was a \`for\` loop. The second was \`Promise.all\`. The third was the one we shipped — chunked batches with a concurrency limit — and we patted ourselves on the back and moved on.
 
